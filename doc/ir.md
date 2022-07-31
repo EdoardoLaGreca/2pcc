@@ -189,6 +189,7 @@ where:
 
 ```
 (inc ADDR)
+(incu ADDR)
 ```
 
 where:
@@ -199,6 +200,7 @@ where:
 
 ```
 (dec ADDR)
+(decu ADDR)
 ```
 
 where:
@@ -318,14 +320,14 @@ where:
  - `PARAMLEN` is the sum of the parameter lengths in bytes
  - `RETADDR` is the returned variable's address
 
-The `@func` statement is followed by, in this order:
+The `func` statement is followed by, in this order:
 
  1. the allocation of the function parameters
  2. the initialization of the function parameters
  3. the allocation of the function's local variables
  4. the initialization of the function's local variables
  5. the function code
- 6. the `@ret` statement
+ 6. the `ret` statement
 
 ### Function calling
 
@@ -373,5 +375,5 @@ Where `NCOND` is the negated loop condition.
 (label NAME1)
 ```
 
-The condition in the `@if` statement is negated so that if it is true it breaks the loop. This implementation is a modified version of the one in the while loop.
+The condition in the `if` statement is negated so that if it is true it breaks the loop. This implementation is a modified version of the one in the while loop.
 
