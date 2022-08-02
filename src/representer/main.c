@@ -11,28 +11,33 @@
 /* length of the buffer while reading a file from disk */
 #define READ_BUFF_SIZE 4096
 
-/* remove unnecessary whitespace */
 void
-rmwhsp(char** file_content)
+preproc(char** file_cont)
+{
+}
+
+/* remove unnecessary whitespace from file content and convert tabs to spaces */
+void
+rmwhsp(char** file_cont)
 {
 	/* dlt_start = delete start, dlt_end = delete end, is_ws = is whitespace? */
 	int i, file_len, dlt_start = -1, dlt_end = -1, is_ws = 0, removed_len = 0;
 
-	file_len = strlen(*file_content);
+	file_len = strlen(*file_cont);
 
 	for (i = 0; i < file_len; i++) {
-		switch (*file_content[i]) {
-		case ' ':
+		switch (*file_cont[i]) {
 		case '\t':
-		case '\n':
-			dlt_start = i
+			file_cont[i] = ' ';
+		case ' ':
+			dlt_start = i;
 			is_ws = 1;
 			break;
 		default:
 			if (is_ws) {
 				dlt_end = i-1;
 				is_ws = 0;
-				memmove(*file_content + dlt_start, *file_content + dlt_end, file_len - dlt_end);
+				memmove(*file_cont + dlt_start, *file_cont + dlt_end, file_len - dlt_end);
 				removed_len += dlt_end - dlt_start;
 			}
 			break;
@@ -40,7 +45,53 @@ rmwhsp(char** file_content)
 	}
 
 	/* shrink the file content array by removing unused space */
-	*file_content = realloc(file_content, file_len - removed_len);
+	*file_cont = realloc(file_cont, file_len - removed_len);
+}
+
+/* read the nth unicode character (encoded in UTF-8) of str and return it as an integer.
+   optionally also return its byte position in byte_pos if it's not null.
+   this function assumes that str is a correctly encoded UTF-8 string.
+   for reference: https://en.wikipedia.org/wiki/UTF-8#Encoding */
+int
+nthch(char* str, long ch_pos, long* byte_pos)
+{
+	int i, j, ch = 0;
+
+	/* go to nth character */
+	for (i = 0; i < ch_pos; i++) {
+		/* check most significant bits; by the end of this loop, the value of j is the length of the UTF-8 byte sequence */
+		for (j = 1; str[i] & (0x03 << 7-j) == (0x03 << 7-j); j++);
+
+		/* skip bytes */
+		i += j-1;
+		/* ch_pos is also increased since skipping bytes does not mean skipping characters */
+		ch_pos += j-1;
+
+	}
+
+	/* check most significant bits; by the end of this loop, the value of j is the length of the UTF-8 byte sequence */
+	for (j = 1; str[i] & (0x03 << 7-j) == (0x03 << 7-j); j++);
+
+	switch (j) {
+	case 1:
+		ch = ch | (str[i] & 0x7F)
+		break;
+	case 2:
+		ch = ch | ((str[i] & 0x1F) << 6)
+		ch = ch | (str[i+1] & 0x3F)
+		break;
+	case 3:
+		ch = ch | ((str[i] & 0x0F) << 12)
+		ch = ch | ((str[i+1] & 0x3F) << 6)
+		ch = ch | (str[i+2] & 0x3F)
+		break;
+	case 4:
+		ch = ch | ((str[i] & 0x07) << 18)
+		ch = ch | ((str[i+1] & 0x0
+		break;
+	}
+
+	return ch;
 }
 
 /* read the entire file, allocate it in heap and return it. return NULL if an error occurred. */
@@ -76,16 +127,21 @@ readf(FILE* f)
 	return total;
 }
 
-/* return the source file's IR code as a string in heap */
+/* return the source file's IR code as a string in heap or NULL if an error occurred */
 char*
 compile(FILE* f)
 {
 	/* read all the file */
-	char* file_content = readf(f);
+	char* file_cont = readf(f);
 
-	rmwhsp(&file_content);
+	if (!file_cont) {
+		return NULL;
+	}
 
-	free(file_content);
+	/* remove excessive whitespace */
+	rmwhsp(&file_cont);
+
+	free(file_cont);
 }
 
 /* attempt to change file name (".c" -> ".2ir") in place, name_len is the length of the name array */
