@@ -37,8 +37,14 @@ rmwhsp(char** file_cont)
 			if (is_ws) {
 				dlt_end = i-1;
 				is_ws = 0;
-				memmove(*file_cont + dlt_start, *file_cont + dlt_end, file_len - dlt_end);
-				removed_len += dlt_end - dlt_start;
+
+				/* check if the character before the first whitespace and the character after the last whitespace are 
+				   alphanumeric or underscores */
+				if ((!isalnum(*file_cont[dlt_start - 1]) && *file_cont[dlt_start - 1] != '_') ||
+					(!isalnum(*file_cont[dlt_end + 1]) && *file_cont[dlt_end + 1] != '_')) {
+					memmove(*file_cont + dlt_start, *file_cont + dlt_end + 1, file_len - dlt_end);
+					removed_len += dlt_end - dlt_start;
+				}
 			}
 			break;
 		}
@@ -55,7 +61,7 @@ rmwhsp(char** file_cont)
 int
 nthch(char* str, long ch_pos, long* byte_pos)
 {
-	int i, j, ch = 0;
+	int i, j, k, ch = 0;
 
 	/* go to nth character */
 	for (i = 0; i < ch_pos; i++) {
@@ -74,24 +80,34 @@ nthch(char* str, long ch_pos, long* byte_pos)
 
 	switch (j) {
 	case 1:
-		ch = ch | (str[i] & 0x7F)
+		ch = ch | (str[i] & 0x7F);
 		break;
 	case 2:
-		ch = ch | ((str[i] & 0x1F) << 6)
-		ch = ch | (str[i+1] & 0x3F)
+		ch = ch | ((str[i] & 0x1F) << 6);
+		ch = ch | (str[i+1] & 0x3F);
 		break;
 	case 3:
-		ch = ch | ((str[i] & 0x0F) << 12)
-		ch = ch | ((str[i+1] & 0x3F) << 6)
-		ch = ch | (str[i+2] & 0x3F)
+		ch = ch | ((str[i] & 0x0F) << 12);
+		ch = ch | ((str[i+1] & 0x3F) << 6);
+		ch = ch | (str[i+2] & 0x3F);
 		break;
 	case 4:
-		ch = ch | ((str[i] & 0x07) << 18)
-		ch = ch | ((str[i+1] & 0x0
+		ch = ch | ((str[i] & 0x07) << 18);
+		ch = ch | ((str[i+1] & 0x3F) << 12);
+		ch = ch | ((str[i+2] & 0x3F) << 6);
+		ch = ch | (str[i+3] & 0x3F);
 		break;
 	}
 
 	return ch;
+}
+
+/* apply line reconstruction */
+void
+lnrecon(char** file_cont)
+{
+	/* remove excessive whitespace */
+	rmwhsp(&file_cont);
 }
 
 /* read the entire file, allocate it in heap and return it. return NULL if an error occurred. */
@@ -107,7 +123,7 @@ readf(FILE* f)
 	total_len = ftell(f);
 	fseek(f, 0, SEEK_SET);
 
-	total = malloc(total_len + 1)
+	total = malloc(total_len + 1);
 
 	/* read bytes */
 	while ((bytes_read = fread(buffer, 1, READ_BUFF_SIZE, f)) > 0) {
@@ -138,8 +154,7 @@ compile(FILE* f)
 		return NULL;
 	}
 
-	/* remove excessive whitespace */
-	rmwhsp(&file_cont);
+	lnrecon(file_cont);
 
 	free(file_cont);
 }
@@ -216,11 +231,12 @@ main(int argc, char** argv)
 	for (i = 0; files[i] != NULL; i++) {
 		FILE* ofile; /* output file */
 		char* ofile_name;
+		char* ir_code;
 		int ifile_len, ofile_len;
 
 		/* change name */
 		ifile_len = strlen(argv[i]);
-		ofile_len = ifile_len + 2
+		ofile_len = ifile_len + 2;
 		ofile_name = calloc(ofile_len + 1, 1);
 		chgfname(ofile_name, ofile_len + 1);
 
