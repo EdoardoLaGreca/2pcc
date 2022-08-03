@@ -11,9 +11,41 @@
 /* length of the buffer while reading a file from disk */
 #define READ_BUFF_SIZE 4096
 
+/* store string in heap from its beginning until a certain character.
+   if the string ends before that character is found, the entire string is stored. */
+char*
+storesubstr(char* str, char until)
+{
+	int i, str_len = strlen(str);
+	for (i = 0; i < str_len; i++) {
+		if (str[i] == until) {
+			
+}
+
 void
 preproc(char** file_cont)
 {
+	/* j is used to fill dir_name */
+	int i, file_len, is_preproc = 0, j = 0;
+
+	/* directive name, the max length for a directive name is 7 characters */
+	char dir_name[8];
+
+	file_len = strlen(*file_cont);
+	memset(dir_name, 0, 8);
+
+	/* find lines that start with '#' and parse them */
+	for (i = 0; i < file_len; i++) {
+		if (is_preproc) {
+			dir_name[j] = file_cont[i];
+			j++;
+		} else {
+			if (file_cont[i] == '#' && (i == 0 || file_cont[i-1] == '\n')) {
+				/* it's the beginning of a preprocessor directive */
+				is_preproc = 1;
+			}
+		}
+	}
 }
 
 /* remove unnecessary whitespace from file content and convert tabs to spaces */
@@ -43,7 +75,8 @@ rmwhsp(char** file_cont)
 				if ((!isalnum(*file_cont[dlt_start - 1]) && *file_cont[dlt_start - 1] != '_') ||
 					(!isalnum(*file_cont[dlt_end + 1]) && *file_cont[dlt_end + 1] != '_')) {
 					memmove(*file_cont + dlt_start, *file_cont + dlt_end + 1, file_len - dlt_end);
-					removed_len += dlt_end - dlt_start;
+					removed_len += dlt_end + 1 - dlt_start;
+					i -= removed_len;
 				}
 			}
 			break;
@@ -51,6 +84,7 @@ rmwhsp(char** file_cont)
 	}
 
 	/* shrink the file content array by removing unused space */
+	*file_cont[file_len] = 0;
 	*file_cont = realloc(file_cont, file_len - removed_len);
 }
 
