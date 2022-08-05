@@ -68,17 +68,20 @@ rmwhsp(char** file_cont)
 			break;
 		default:
 			if (is_ws) {
-				dlt_end = i-1;
+				dlt_end = i;
 				is_ws = 0;
 
 				/* check if the character before the first whitespace and the character after the last whitespace are 
 				   alphanumeric or underscores */
-				if ((!isalnum(*file_cont[dlt_start - 1]) && *file_cont[dlt_start - 1] != '_') ||
-					(!isalnum(*file_cont[dlt_end + 1]) && *file_cont[dlt_end + 1] != '_')) {
-					memmove(*file_cont + dlt_start, *file_cont + dlt_end + 1, file_len - dlt_end);
-					removed_len += dlt_end + 1 - dlt_start;
-					i -= removed_len;
+				if ((isalnum(*file_cont[dlt_start - 1]) || *file_cont[dlt_start - 1] == '_') &&
+					(isalnum(*file_cont[dlt_end + 1]) || *file_cont[dlt_end + 1] == '_')) {
+					/* leave one space */
+					dlt_end--;
 				}
+
+				memmove(*file_cont + dlt_start, *file_cont + dlt_end, file_len - dlt_end);
+				removed_len += dlt_end - dlt_start;
+				i -= removed_len;
 			}
 			break;
 		}
