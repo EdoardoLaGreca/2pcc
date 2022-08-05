@@ -22,6 +22,7 @@ storesubstr(char* str, char until)
 			
 }
 
+/* parse and execute preprocessor directives */
 void
 preproc(char** file_cont)
 {
