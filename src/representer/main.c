@@ -11,15 +11,58 @@
 /* length of the buffer while reading a file from disk */
 #define READ_BUFF_SIZE 4096
 
-/* store string in heap from its beginning until a certain character.
-   if the string ends before that character is found, the entire string is stored. */
+struct preproc {
+	char* name;
+	char*
+};
+
+/* store string in heap from its beginning until one of a set of characters occur.
+   if the string ends before one of the characters are found, the entire string is stored.
+   if the first character in the string matches one of the characters, the return value is null. */
 char*
-storesubstr(char* str, char until)
+storesubstr(char* str, const char* ch)
 {
-	int i, str_len = strlen(str);
+	int i, str_len, ch_len, substr_len = 0;
+	char* substr;
+
+	str_len = strlen(str);
+	ch_len = strlen(ch);
+
+	/* count substring length */
 	for (i = 0; i < str_len; i++) {
-		if (str[i] == until) {
-			
+		int j, found = 0;
+
+		for (j = 0; j < ch_len; j++) {
+			if (str[i] == ch[j]) {
+				found = 1;
+				break;
+			}
+		}
+
+		if (found) {
+			break;
+		}
+	}
+	substr_len = i;
+
+	if (substr_len == 0) {
+		return NULL;
+	}
+
+	substr = calloc(substr_len + 1, 1);
+	strncpy(substr, str, substr_len);
+	return substr;
+}
+
+void
+execpreproc()
+{
+}
+
+/* parse preprocessor */
+char*
+parsepreproc(char* str)
+{
 }
 
 /* parse and execute preprocessor directives */
@@ -29,22 +72,28 @@ preproc(char** file_cont)
 	/* j is used to fill dir_name */
 	int i, file_len, is_preproc = 0, j = 0;
 
-	/* directive name, the max length for a directive name is 7 characters */
-	char dir_name[8];
+	/* directive name */
+	char* dir_name;
+
+	char* dir_value;
 
 	file_len = strlen(*file_cont);
 	memset(dir_name, 0, 8);
 
 	/* find lines that start with '#' and parse them */
 	for (i = 0; i < file_len; i++) {
-		if (is_preproc) {
-			dir_name[j] = file_cont[i];
-			j++;
-		} else {
-			if (file_cont[i] == '#' && (i == 0 || file_cont[i-1] == '\n')) {
-				/* it's the beginning of a preprocessor directive */
-				is_preproc = 1;
+		if (file_cont[i] == '#' && (i == 0 || file_cont[i-1] == '\n')) {
+			/* it's the beginning of a preprocessor directive */
+			dir_name = storesubstr(&file_cont[i+1], " <\"");
+
+			/* skip name and jump to next word */
+			i += strlen(dir_name) + 2;
+
+			if (strcmp(dir_name, "include") == 0) {
+				if (file_cont[i-1] == '\"') {
+
 			}
+
 		}
 	}
 }
@@ -71,7 +120,7 @@ rmwhsp(char** file_cont)
 				dlt_end = i;
 				is_ws = 0;
 
-				/* check if the character before the first whitespace and the character after the last whitespace are 
+				/* check if the character before the first whitespace and the character after the last whitespace are
 				   alphanumeric or underscores */
 				if ((isalnum(*file_cont[dlt_start - 1]) || *file_cont[dlt_start - 1] == '_') &&
 					(isalnum(*file_cont[dlt_end + 1]) || *file_cont[dlt_end + 1] == '_')) {
@@ -155,7 +204,7 @@ readf(FILE* f)
 	char* total;
 	char buffer[READ_BUFF_SIZE];
 	int bytes_read, total_len, total_i = 0;
-	
+
 	/* get the file size */
 	fseek(f, 0, SEEK_END);
 	total_len = ftell(f);
