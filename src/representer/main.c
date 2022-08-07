@@ -65,10 +65,47 @@ execpreproc(char** file_cont, int pos, struct preproc p)
 {
 }
 
-/* parse preprocessor */
-char*
+/* parse preprocessor.
+   the first character of the string is supposed to be the one right after '#' */
+struct preproc
 parsepreproc(char* str)
 {
+	int i = 0;
+	struct preproc result;
+
+	result.name = storesubstr(&str[i], " <\"");
+
+	/* skip name and jump to next word */
+	i += strlen(result.name);
+
+	if (str[i] == ' ') {
+		i++;
+	}
+
+	result.value = storesubstr(&str[i], "\\\n");
+
+	i += strlen(result.value);
+
+	/* detect the escaped newline and continue parsing after newline */
+	while (str[i] == '\\' && str[i+1] == '\n') {
+		char* tmp;
+		int value_len, tmp_len;
+
+		i += 2;
+		tmp = storesubstr(&str[i], "\\\n");
+		i += strlen(tmp);
+
+		value_len = strlen(result.value);
+		tmp_len = strlen(tmp);
+
+		result.value = realloc(result.value, value_len + tmp_len + 1);
+		strcpy(result.value + value_len, tmp);
+		result.value[value_len + tmp_len] = 0;
+
+		free(tmp);
+	}
+
+	return result;
 }
 
 /* parse and execute preprocessor directives */
