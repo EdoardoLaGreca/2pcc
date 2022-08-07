@@ -90,6 +90,19 @@ storesubstr(char* str, const char* ch)
 void
 execpreproc(char** file_cont, int pos, struct preproc p)
 {
+	if (strcmp(p.name, "include") == 0) {
+		int islocal;
+
+		switch (p.value[0]) {
+		case '<':
+			islocal = 0;
+			break;
+		case '\"':
+			islocal = 1;
+			break;
+		default:
+			perr("error: unexpected character after `include' directive; expected: `<' or `\"'.\n\t");
+	}
 }
 
 /* parse preprocessor.
