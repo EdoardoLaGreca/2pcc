@@ -11,9 +11,13 @@
 /* length of the buffer while reading a file from disk */
 #define READ_BUFF_SIZE 4096
 
+/* a preprocessor directive */
 struct preproc {
+	/* preprocessor directive name (e.g. "include", "define", "pragma", etc.) */
 	char* name;
-	char*
+
+	/* preprocessor direcrive value (e.g. "<header.h>", "\"header2.h\"", "MY_MACRO 1234", "once", etc.) */
+	char* value;
 };
 
 /* store string in heap from its beginning until one of a set of characters occur.
