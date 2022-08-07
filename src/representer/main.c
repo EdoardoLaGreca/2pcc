@@ -115,28 +115,16 @@ preproc(char** file_cont)
 	/* j is used to fill dir_name */
 	int i, file_len, is_preproc = 0, j = 0;
 
-	/* directive name */
-	char* dir_name;
-
-	char* dir_value;
-
 	file_len = strlen(*file_cont);
 	memset(dir_name, 0, 8);
 
 	/* find lines that start with '#' and parse them */
 	for (i = 0; i < file_len; i++) {
 		if (file_cont[i] == '#' && (i == 0 || file_cont[i-1] == '\n')) {
-			/* it's the beginning of a preprocessor directive */
-			dir_name = storesubstr(&file_cont[i+1], " <\"");
+			struct preproc p;
 
-			/* skip name and jump to next word */
-			i += strlen(dir_name) + 2;
-
-			if (strcmp(dir_name, "include") == 0) {
-				if (file_cont[i-1] == '\"') {
-
-			}
-
+			p = parsepreproc(&file_cont[i+1]);
+			execpreproc(file_cont, i, p);
 		}
 	}
 }
