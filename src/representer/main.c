@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <unistd.h>
 
@@ -19,6 +20,32 @@ struct preproc {
 	/* preprocessor direcrive value (e.g. "<header.h>", "\"header2.h\"", "MY_MACRO 1234", "once", etc.) */
 	char* value;
 };
+
+/* print formatted error to stderr */
+void
+perr(char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
+	va_end(args);
+}
+
+/* get line number of character */
+int
+getlinen(char* file_cont, int ch_pos)
+{
+	int i;
+	int linen = 1; /* line number */
+
+	for (i = 0; i < ch_pos; i++) {
+		if (file_cont[i] == '\n') {
+			linen++;
+		}
+	}
+
+	return linen;
+}
 
 /* store string in heap from its beginning until one of a set of characters occur.
    if the string ends before one of the characters are found, the entire string is stored.
