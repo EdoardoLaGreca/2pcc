@@ -58,8 +58,10 @@ storesubstr(char* str, const char* ch)
 	return substr;
 }
 
+/* execute preprocessor directive.
+   pos is the position of '#' in file_cont */
 void
-execpreproc()
+execpreproc(char** file_cont, int pos, struct preproc p)
 {
 }
 
