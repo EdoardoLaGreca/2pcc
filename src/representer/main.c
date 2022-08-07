@@ -156,7 +156,6 @@ preproc(char** file_cont)
 	int i, file_len, is_preproc = 0, j = 0;
 
 	file_len = strlen(*file_cont);
-	memset(dir_name, 0, 8);
 
 	/* find lines that start with '#' and parse them */
 	for (i = 0; i < file_len; i++) {
