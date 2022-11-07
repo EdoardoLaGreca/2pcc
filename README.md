@@ -34,6 +34,13 @@ Each realizer has its own roadmap since its development is platform-dependent.
 
  - Simplicity
  - Lightness
+ - Minimalism
+
+## Non-goals
+
+ - Complexity
+ - Heavyweight features
+ - Extreme code optimization
 
 ## License
 
