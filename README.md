@@ -1,4 +1,4 @@
-# 2pcc - the two-phase C compiler
+# 2pcc — the two-phase C compiler
 
 ## Introduction
 
