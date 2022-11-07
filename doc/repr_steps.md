@@ -63,4 +63,51 @@ while (src_file[i] != "\n") { i++; }
 temp_term = i;
 ```
 
-Now, unless any error occurred, you have everything you need: the type and the value. Time to do the stuff.
+Now, unless any error occurred, you have everything you need: the type and the value of a preprocessor directive. Time to do the stuff. Now, if I was writing it using a higher-level language, I would just compare the strings using a switch statement but in C you cannot compare them because they are pointers. So, what to do?
+
+A clever move is to, instead of comparing the whole strings, just focus on one or few characters in the right positions. In this case, what are the possible strings for the directive type? "include", "pragma", "define", "undef", "ifdef", "ifndef" and "endif". Let's start from comparing the first character: we can say that 'p', 'd', 'u' and 'e' are the first characters of one word only, while 'i' is shared among many words ("include", "ifdef", etc...). Now take a look at the following code.
+
+```C
+switch (preproc_type[0]) {
+case 'p': /* pragma */
+	/* ... */
+	break;
+
+case 'd': /* define */
+	/* ... */
+	break;
+
+case 'u': /* undef */
+	/* ... */
+	break;
+
+case 'e': /* endif */
+	/* ... */
+	break;
+
+case 'i':
+	switch (preproc_type[2]) {
+	case 'c': /* include */
+		/* ... */
+		break;
+
+	case 'd': /* ifdef */
+		/* ... */
+		break;
+
+	case 'n': /* ifndef */
+		/* ... */
+		break;
+
+	default:
+		/* unknown */
+		break;
+	}
+
+default:
+	/* unknown */
+	break;
+}
+```
+
+In this way, by comparing just one or, at most, two characters, it is possible to guess the whole word. However, the downside of this approach is that an unknown word may still match in one of the cases.
