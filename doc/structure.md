@@ -4,7 +4,7 @@ The compiler opts for the the [three-stage structure](https://en.wikipedia.org/w
 
 Of the three-stage structure, the first and second stages are delegated to a single entity called **representer**, which takes source code and produces the respective platform-independent IR code. Then, another entity called **realizer** translates IR code into platform-dependent object code and statically links the required libraries, producing the final executable file.
 
-![](img/general_structure_repr_real.png)
+![general structure](img/general_structure_repr_real.png)
 
 This is an optimal structure: both of the two entities are designed to care about one aspect only. In fact, the representer operates in a platform-*independent* context while the realizer does the opposite.
 
