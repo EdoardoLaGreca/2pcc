@@ -6,9 +6,13 @@ At first it may look like a long document full of details but I think it's reada
 
 ## 0 — Considrations
 
+WISE UP! While reading this document you will notice that the syntax of the C language is purposely made to be easy to understand by both *compilers* and *humans*. This, however, requires seeing the C syntax from *another perspective*.
+
+### Code snippets
+
 The code snippets in this document don't use the C90 standard library and replaces its functions with comments. Feel free to use the standard library if needed.
 
-WISE UP! While reading this document you will notice that the syntax of the C language is purposely made to be easy to understand by both *compilers* and *humans*. This, however, requires seeing the C syntax from *another perspective*.
+Inside of a section, there may be more than one code snippet. In that case, the snippets are meant to be seen as a single, larger code block composed of all that section's snippets in chronological order, except when they are examples.
 
 ### UTF-8 compliance
 
@@ -110,4 +114,120 @@ default:
 }
 ```
 
-In this way, by comparing just one or, at most, two characters, it is possible to guess the whole word. However, the downside of this approach is that an unknown word may still match in one of the cases.
+In this way, by comparing just one or, at most, two characters, it is possible to guess the whole word. However, the downside of this approach is that an unknown word may still match in one of the cases, which may still be useful in case the user writes a typo.
+
+You should know what each directive does.
+
+For better code readability, it is advised to split each directive execution in *separate functions* (e.g. a function which executes the `include` directive, another one for the `define`, directive, etc...).
+
+## 2 — Line reconstruction
+
+Line reconstruction helps in parsing the rest of the file and consists of removing all the whitespace characters.
+
+It is not always possible to remove whitespace so let's take a moment to understand how and where to do it. Consider the following line of code.
+
+```C
+int i = 3;
+```
+
+It is possible to remove all the whitespace after `i` but not between `int` and `i` because it would fuse the type with the name and it would not be possible to understand where one ends and the other begins. This consideration leads to a rule: *a word, meant as a string of visible characters between two whitespaces, can be joined with another word by removing the whitespace in-between only if the last character of the first word and the first character of the second word are not both alphanumeric or underscores*.
+
+Using the rule above, the line becomes...
+
+```C
+int i=3;
+```
+
+A more elaborate example:
+
+```C
+if (i != 3) {
+	int _j = 42;
+	i += _j;
+}
+```
+
+Which becomes...
+
+```C
+if(i!=3){int _j=42;i+=_j;}
+```
+
+In the following steps, for the sake of readability, code snippets are *not* going to be shown as if they were subjected to line reconstruction.
+
+During line reconstruction, it is also useful to remove comments.
+
+## 3 — Replacement
+
+This is the point where 2pcc really diverges from other compilers, which would tokenize the source file now. Instead, 2pcc takes a different approach. More details ahead.
+
+### 3.1 — Type replacement
+
+Did you know that writing *this*
+
+```C
+struct mystruct {
+	int i1;
+	int i2;
+	char c1;
+}
+
+void myfunc() {
+	struct mystruct var;
+}
+```
+
+is exactly the same as *this*?
+
+```C
+void myfunc() {
+	struct mystruct {
+		int i1;
+		int i2;
+		char c1;
+	} var;
+}
+```
+
+So that's what it does, it *replaces type names with their actual structure*. This is also valid for `enum`s and `union`s.
+
+On the other hand, `typedef`s create type aliases. If one type alias is found, the representer will search for the original type name (or another alias, in case of multiple cascading `typedef`s in which only one refers to the original) before replacing.
+
+```C
+/* an example of multiple cascading typedefs in which only one refers to the original type */
+
+struct mystruct { /* ... */ }
+
+/* struct mystruct <- myalias */
+typedef struct mystruct myalias;
+
+/* struct mystruct <- myalias <- youralias */
+typedef myalias youralias;
+```
+
+As type definitions are replaced, they are removed from the source file.
+
+During this step, it is also possible to check for undefined types.
+
+### 3.2 — Expression validity check and replacement
+
+Expressions are the next thing to replace. There are 4 places to search in:
+
+ - *assignments* (to variables, array items and struct fields), between '=' (not "==") and ';'
+ - *`if` conditions*, between "if(" and ")"
+ - *`while` conditions*, between "while(" and ")"
+ - *`for` conditions*, between "for(...;" and ";"
+
+To check the validity of an expression (and possibly replace it), a syntax tree would be the best option.
+
+The tree is built in this way:
+
+ 1. search for the innermost expressions between parentheses '(' and ')' (not required if the expression does not use parentheses)
+ 2. check the validity of those expressions, in particular:
+    - check that the number(s) are actually valid numbers (no other characters unless to specify the number base or the integer suffix)
+    - check that whether the operator is unary or binary
+    - add the number(s) to the tree as leaves and the operator as their parent node
+    - continue by examining the outer expressions
+
+It is important to pay attention to operators' precedence.
+
