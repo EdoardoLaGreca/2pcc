@@ -226,8 +226,52 @@ The tree is built in this way:
  2. check the validity of those expressions, in particular:
     - check that the number(s) are actually valid numbers (no other characters unless to specify the number base or the integer suffix)
     - check that whether the operator is unary or binary
-    - add the number(s) to the tree as leaves and the operator as their parent node
-    - continue by examining the outer expressions
+    - add the number(s) to a [BST](https://en.wikipedia.org/wiki/Binary_search_tree) as leaves and the operator as their parent node
+    - continue by examining the outer expressions and attaching them to the same BST (it is important to pay attention to the operators' precedence)
+ 3. reduce the BST tree by calculating constant expressions
 
-It is important to pay attention to operators' precedence.
+In case of an expression made of constants only, the result is constant.
+
+For example:
+
+```C
+int j;
+
+/* assign a value to j... */
+
+/* expression */
+int i = 12 + 34 * (567 - 89 * (- j)) - 42;
+
+/* BST */
+     -
+    / \
+   +   42
+  / \
+12   *
+    / \
+  34   -
+      / \
+   567   *
+        / \
+      89   -
+          / \
+         0   j
+```
+
+Once one expression's BST is completed, it can be converted to IR code.
+
+```
+# push variable j and i
+
+(assign i 0)
+(sub i j)
+(mul i 89)
+(sub i 567)
+(mul i -1) # multiply by -1 because the subtraction was done in reversed order
+(mul i 34)
+(add i 12)
+(sub i 42)
+```
+
+It is worth saying that, while the IR code above is completely valid, it can be simplified a lot because it contains a lot of little constant expressions. Here are some examples of reduction:
 
