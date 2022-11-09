@@ -8,7 +8,7 @@ NB1: If multiple IR statements are specified and one or more parameters have the
 
 NB2: If an IR statement takes two parameters and the length in memory of the two parameters is not the same, it is a bug. This is not supposed to happen.
 
-NB3: Whenever an existing variable name is required, a constant value may be placed as well, if it makes sense. This means that this rule is valid for all the existing statements except for `push`, `func` and `assign`.
+NB3: Whenever an existing variable name is required, a constant value may be placed as well, if it makes sense. This means that this rule is valid for all the existing statements except for `push` and `func`.
 
 ## Comments
 
@@ -36,13 +36,13 @@ Variables allocated inside of a scope, such as a function, must be deallocated a
 ### Assignment
 
 ```
-(assign NAME VALUE)
+(assign NAME1 NAME2)
 ```
 
 where:
 
- - `NAME` is the variable name
- - `VALUE` is the new variable value
+ - `NAME1` is the variable name in which the new value is placed (cannot be a constant)
+ - `NAME2` the variable name which contains the new value (can be a constant)
 
 Variables can be assigned only *after* allocation.
 
