@@ -8,13 +8,13 @@ At first it may look like a long document full of details but I think it's reada
 
 WISE UP! While reading this document you will notice that the syntax of the C language is purposely made to be easy to understand by both *compilers* and *humans*. This, however, requires seeing the C syntax from *another perspective*.
 
-### Code snippets
+### 0.1 — Code snippets
 
 The code snippets in this document don't use the C90 standard library and replaces its functions with comments. Feel free to use the standard library if needed.
 
 Inside of a section, there may be more than one code snippet. In that case, the snippets are meant to be seen as a single, larger code block composed of all that section's snippets in chronological order, except when they are examples.
 
-### UTF-8 compliance
+### 0.2 — UTF-8 compliance
 
 The representer parses the file as a *UTF-8* string. However, the code snippets in this document treat the file as an *ASCII* string, for the sake of readability. To replace ASCII parsing with UTF-8 parsing (a character is called *code point* in Unicode terminology):
 
@@ -211,12 +211,13 @@ During this step, it is also possible to check for undefined types.
 
 ### 3.2 — Expression validity check and replacement
 
-Expressions are the next thing to replace. There are 4 places to search in:
+Expressions are the next thing to replace. There are 5 places to search in:
 
  - *assignments* (to variables, array items and struct fields), between '=' (not "==") and ';'
  - *`if` conditions*, between "if(" and ")"
  - *`while` conditions*, between "while(" and ")"
  - *`for` conditions*, between "for(...;" and ";"
+ - *function arguments in calls*, between '(' and ')', '(' and ',', ',' and ',' or ',' and ')'
 
 To check the validity of an expression (and possibly replace it), a syntax tree would be the best option.
 
@@ -232,7 +233,7 @@ The tree is built in this way:
 
 In case of an expression made of constants only, the result is constant.
 
-For example:
+For example this code:
 
 ```C
 int j;
@@ -241,8 +242,11 @@ int j;
 
 /* expression */
 int i = 12 + 34 * (567 - 89 * (- j)) - 42;
+```
 
-/* BST */
+produces the following BST.
+
+```
      -
     / \
    +   42
@@ -273,5 +277,33 @@ Once one expression's BST is completed, it can be converted to IR code.
 (sub i 42)
 ```
 
-It is worth saying that, while the IR code above is completely valid, it can be simplified a lot because it contains a lot of little constant expressions. Here are some examples of reduction:
+It is worth saying that, while the IR code above is completely valid, it can be simplified because it contains a constant expression. Here is the BST of the reduced expression:
 
+```
+    +
+   / \
+-30   *
+     / \
+   34   -
+       / \
+    567   *
+         / \
+       89   -
+           / \
+          0   j
+```
+
+because 12 - 42 = -30.
+
+Also, keep in mind that expressions may also contain references and function calls, in which case we just need to call the function, store the returned value in a temporary variable and use that variable as part of the expression.
+
+#### 3.2.1 — Mismatching types and type casts
+
+There may be scenarios where types do not match. This may be caused by 2 factors:
+
+ - usage of variables or constant values with mismatching types (e.g. `53 + 4.2` or `a + b` where `a` is `int` and `b` is `float`)
+ - usage of type casts
+
+In case of type casts, after applying them, there may be two scenarios: one in which the types match (best) and one in which they don't (worst). In case all types match, the expression can proceed with evaluation. In case at least one type does not match, the types should converge into a single common type by following a primitive type hierarchy.
+
+Here is the primitive type hiearchy for C:
