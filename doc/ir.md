@@ -8,7 +8,7 @@ NB1: If multiple IR statements are specified and one or more parameters have the
 
 NB2: If an IR statement takes two parameters and the length in memory of the two parameters is not the same, it is a bug. This is not supposed to happen.
 
-NB3: Whenever an existing variable name is required, a constant value may be placed as well, if it makes sense. This means that this rule is valid for all the existing statements except for `push` and `func`.
+NB3: Whenever an existing variable name is required, a constant value may be placed as well, if it makes sense. This means that this rule is valid for all the existing statements except for `push`, `func` and `ref`.
 
 ## Comments
 
@@ -45,6 +45,17 @@ where:
  - `NAME2` the variable name which contains the new value (can be a constant)
 
 Variables can be assigned only *after* allocation.
+
+### Reference
+
+```
+(ref NAME1 NAME2)
+```
+
+where:
+
+ - `NAME1` is the name of the variable to take the address of
+ - `NAME2` is the name of the variable to put the address into
 
 ### Stack deallocation
 
