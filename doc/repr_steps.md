@@ -213,9 +213,8 @@ During this step, it is also possible to check for undefined types.
 
 Expressions are the next thing to replace. There are 5 places to search in:
 
- - *assignments* (to variables, array items and struct fields), between '=' (not "==") and ';'
- - *`if` conditions*, between "if(" and ")"
- - *`while` conditions*, between "while(" and ")"
+ - *`if` and `switch` conditions*, between "if(" and ")" and "switch(" and ")"
+ - *`while` and `do-while` conditions*, between "while(" and ")" and "do{...}while(" and ")"
  - *`for` conditions*, between "for(...;" and ";"
  - *function arguments in calls*, between '(' and ')', '(' and ',', ',' and ',' or ',' and ')'
 
@@ -295,15 +294,90 @@ It is worth saying that, while the IR code above is completely valid, it can be 
 
 because 12 - 42 = -30.
 
-Also, keep in mind that expressions may also contain references and function calls, in which case we just need to call the function, store the returned value in a temporary variable and use that variable as part of the expression.
+Also, keep in mind that expressions may also contain *function calls*, in which case we just need to call the function, store the returned value in a temporary variable and use that variable as part of the expression.
+
+The BST can be implemented as an array of the following `struct _operand`.
+
+```C
+/* operator type */
+enum oprtype {
+	ASSIGNMENT,         /* = */
+	ADDASSIGN,          /* += */
+	SUBASSIGN,          /* -= */
+	TIMESASSIGN,        /* *= */
+	DIVIDEASSIGN,       /* /= */
+	MODULOASSIGN,       /* %= */
+	ANDASSIGN,          /* &= */
+	ORASSIGN,           /* |= */
+	XORASSIGN,          /* ^= */
+	LSHIFTASSIGN,       /* <<= */
+	RSHIFTASSING,       /* >>= */
+	PREINCR,            /* ++a */
+	PREDECR,            /* --a */
+	POSTINCR,           /* a++ */
+	POSTDECR,           /* a-- */
+	UNPLUS,             /* +a */
+	UNMINUS,            /* -a */
+	ADD,                /* a + b */
+	SUB,                /* a - b */
+	TIMES,              /* a * b */
+	DIVIDE,             /* a / b */
+	MODULO,             /* a % b */
+	BITNOT,             /* ~a */
+	BITAND,             /* a & b */
+	BITOR,              /* a | b */
+	BITXOR,             /* a ^ b */
+	BITLSHIFT,          /* a << b */
+	BITRSHIFT,          /* a >> b */
+	LOGICNOT,           /* !a */
+	LOGICAND,           /* a && b */
+	LOGICOR,            /* a || b */
+	EQUALTO,            /* a == b */
+	NOTEQUALTO,         /* a != b */
+	LESSTHAN,           /* a < b */
+	GREATERTHAN,        /* a > b */
+	LESSTHANEQUALTO,    /* a <= b */
+	GREATERTHANEQUALTO, /* a >= b */
+	ARRAYSUBSCRIPT,     /* a[b] */
+	DEREFERENCE,        /* *a */
+	REFERENCE,          /* &a */
+	MEMBACCESS,         /* a.b */
+	PTRMEMBACCESS,      /* a->b */
+	FNCALL,             /* a(...) */
+	COMMA,              /* a, b */
+	TYPECAST,           /* (b) a */
+	COND,               /* a ? b : c */
+	SIZEOF              /* sizeof(a), sizeof a */
+}
+
+struct _operand {
+	int isopr; /* is operator? */
+	union {
+		enum oprtype oprtype;
+		struct {
+			int islit; /* is literal? */
+			char* strvalue; /* value as string */
+		}
+	}
+}
+```
 
 #### 3.2.1 — Mismatching types and type casts
 
 There may be scenarios where types do not match. This may be caused by 2 factors:
 
  - usage of variables or constant values with mismatching types (e.g. `53 + 4.2` or `a + b` where `a` is `int` and `b` is `float`)
- - usage of type casts
+ - usage of type casts resulting in mismatching types
 
 In case of type casts, after applying them, there may be two scenarios: one in which the types match (best) and one in which they don't (worst). In case all types match, the expression can proceed with evaluation. In case at least one type does not match, the types should converge into a single common type by following a primitive type hierarchy.
 
-Here is the primitive type hiearchy for C:
+In case of 2 mismatching types:
+
+ - in case of two integer types (including `char`), both types are promoted to the *next larger type* (if any) and, if at least one of them is signed, the larger type is signed as well.
+ - in case of one integer and one floating point type, *the floating point type is promoted to a signed integer* (`float` is promoted to `int`, `double` is promoted to `long int`)
+ - in case of two floating point types, the smallest of the two is promoted to the type of other one
+
+In case of an expression containing more than 2 mismatching types, the types are resolved two by two, following the order of execution.
+
+Assignment operations break the rules: the assigned value is *always* casted to the variable's type, except when the two types are incompatible (the variable is smaller than the space needed by the value and/or the variable is unsigned and the value is signed).
+
