@@ -216,19 +216,20 @@ Expressions are the next thing to replace. There are 5 places to search in:
  - *`if` and `switch` conditions*, between "if(" and ")" and "switch(" and ")"
  - *`while` and `do-while` conditions*, between "while(" and ")" and "do{...}while(" and ")"
  - *`for` conditions*, between "for(...;" and ";"
- - *function arguments in calls*, between '(' and ')', '(' and ',', ',' and ',' or ',' and ')'
+ - a function's body
+ - outside of functions, such as in assignments to global variables
 
 To check the validity of an expression (and possibly replace it), a syntax tree would be the best option.
 
 The tree is built in this way:
 
- 1. search for the innermost expressions between parentheses '(' and ')' (not required if the expression does not use parentheses)
- 2. check the validity of those expressions, in particular:
-    - check that the number(s) are actually valid numbers (no other characters unless to specify the number base or the integer suffix)
-    - check that whether the operator is unary or binary
-    - add the number(s) to a [BST](https://en.wikipedia.org/wiki/Binary_search_tree) as leaves and the operator as their parent node
-    - continue by examining the outer expressions and attaching them to the same BST (it is important to pay attention to the operators' precedence)
- 3. reduce the BST tree by calculating constant expressions
+ 1. search for the innermost expression between parentheses '(' and ')' (or the operation with the most precedence in case there are no parentheses)
+ 2. check the validity of that expression, in particular:
+    - check that the operands are valid (no unknown variable names, etc...)
+    - check whether the operator is unary or binary
+    - add the number(s) to a tree as leaves and the operator as their parent node
+    - continue by examining the outer expressions and attaching them to the same tree (it is important to pay attention to the operators' precedence)
+ 3. reduce the tree by calculating constant expressions
 
 In case of an expression made of constants only, the result is constant.
 
@@ -243,7 +244,7 @@ int j;
 int i = 12 + 34 * (567 - 89 * (- j)) - 42;
 ```
 
-produces the following BST.
+produces the following tree.
 
 ```
      -
@@ -261,7 +262,7 @@ produces the following BST.
          0   j
 ```
 
-Once one expression's BST is completed, it can be converted to IR code.
+Once one expression's tree is completed, it can be converted to IR code.
 
 ```
 # push variable j and i
@@ -276,7 +277,7 @@ Once one expression's BST is completed, it can be converted to IR code.
 (sub i 42)
 ```
 
-It is worth saying that, while the IR code above is completely valid, it can be simplified because it contains a constant expression. Here is the BST of the reduced expression:
+It is worth saying that, while the IR code above is completely valid, it can be simplified because it contains a constant expression. Here is the tree of the reduced expression:
 
 ```
     +
@@ -294,9 +295,9 @@ It is worth saying that, while the IR code above is completely valid, it can be 
 
 because 12 - 42 = -30.
 
-Also, keep in mind that expressions may also contain *function calls*, in which case we just need to call the function, store the returned value in a temporary variable and use that variable as part of the expression.
+Also, keep in mind that expressions may also contain *function calls*, in which case we just need to call the function, store the returned value in a temporary variable (meant as a bunch of space in the stack) and use that variable as part of the expression.
 
-The BST can be implemented as an array of the following `struct _operand`.
+The tree can be implemented using the following `struct _node` as node.
 
 ```C
 /* operator type */
@@ -350,14 +351,33 @@ enum oprtype {
 	SIZEOF              /* sizeof(a), sizeof a */
 }
 
-struct _operand {
+/* operator */
+struct _opr {
+	enum oprtype oprtype;
+
+	union {
+		struct {
+			/* left child and right child */
+			struct _node* lchild;
+			struct _node* rchild;
+		}
+
+		/* in case of functions, use this */
+		struct node* args[127];
+	}
+}
+
+/* operand */
+struct _opd {
+	int islit; /* is literal? */
+	char* strvalue; /* value as string */
+}
+
+struct _node {
 	int isopr; /* is operator? */
 	union {
-		enum oprtype oprtype;
-		struct {
-			int islit; /* is literal? */
-			char* strvalue; /* value as string */
-		}
+		struct _opd operand;
+		struct _opt operator;
 	}
 }
 ```
@@ -369,11 +389,13 @@ There may be scenarios where types do not match. This may be caused by 2 factors
  - usage of variables or constant values with mismatching types (e.g. `53 + 4.2` or `a + b` where `a` is `int` and `b` is `float`)
  - usage of type casts resulting in mismatching types
 
-In case of type casts, after applying them, there may be two scenarios: one in which the types match (best) and one in which they don't (worst). In case all types match, the expression can proceed with evaluation. In case at least one type does not match, the types should converge into a single common type by following a primitive type hierarchy.
+In case of mismatching types in type casts, the types should converge into a single common type by following a primitive type hierarchy.
 
 In case of 2 mismatching types:
 
- - in case of two integer types (including `char`), both types are promoted to the *next larger type* (if any) and, if at least one of them is signed, the larger type is signed as well.
+ - in case of two integer types (including `char`):
+   - if they differ in size only, the smaller is casted to the larger
+   - if they differ in signedness, they are both casted to the next
  - in case of one integer and one floating point type, *the floating point type is promoted to a signed integer* (`float` is promoted to `int`, `double` is promoted to `long int`)
  - in case of two floating point types, the smallest of the two is promoted to the type of other one
 
