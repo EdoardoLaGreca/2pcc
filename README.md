@@ -8,7 +8,7 @@ The 2pcc linker also attempts to statically link shared libraries, so that it is
 
 ## Documentation
 
-You can find some documentation in the [doc directory](./doc).
+You can find some documentation in the `doc` directory.
 
 ## Roadmap
 
@@ -19,11 +19,11 @@ You can find some documentation in the [doc directory](./doc).
 
  - ☒ Line reconstruction
  - ☒ Preprocessor
- - ☒ Source code analysis
-   + ☒ Lexical analysis
-   + ☒ Syntax analysis
-   + ☒ Semantic analysis
- - ☒ Additional analysis and optimization
+ - ☒ Replacements
+   + ☒ Type replacement
+   + ☒ IR code generation
+   + ☒ Expression validity check and replacement
+ - ☒ Optimization (optional)
  - ☒ UTF-8 support
 
 ### Realizer
