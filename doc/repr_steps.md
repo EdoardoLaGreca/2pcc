@@ -389,7 +389,7 @@ There may be scenarios where types do not match. This may be caused by 2 factors
  - usage of variables or constant values with mismatching types (e.g. `53 + 4.2` or `a + b` where `a` is `int` and `b` is `float`)
  - usage of type casts which result in mismatching types
 
-In case of mismatching types in type casts, the compiler *throws an error*. This choice was made because creating rules for automatic type casting would require time, effort and code complexity, unless a low code-complexity way is found.
+In case of mismatching types in type casts, the compiler *throws an error*. This choice was made because creating rules for automatic type casting would require time, effort and code complexity, unless a way with low code complexity is found.
 
 Assignment operations break the rules: the assigned value is *always* casted to the variable's type, except when the two types are incompatible (the variable is smaller than the space needed by the value and/or the variable is unsigned and the value is signed).
 
