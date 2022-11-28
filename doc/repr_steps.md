@@ -161,7 +161,64 @@ During line reconstruction, it is also useful to remove comments.
 
 This is the point where 2pcc really diverges from other compilers, which would tokenize the source file now. Instead, 2pcc takes a different approach. More details ahead.
 
-### 3.1 — Type replacement
+### 3.1 — `enum` values replacement
+
+In this step the representer looks at each enum and replaces its values whenever it's used.
+
+The following code
+
+```C
+enum _myenum {
+	FIRSTVAL,
+	SECONDVAL,
+	THIRDVAL = 3,
+	FOURTHVAL,
+}
+
+void my_func() {
+	/* ... */
+
+	enum _myenum first = FIRSTVAL;
+	enum _myenum second = SECONDVAL;
+	enum _myenum third = THIRDVAL;
+	enum _myenum fourth = FOURTHVAL;
+
+	/* ... */
+
+	switch (first) {
+	case FIRSTVAL:
+		/* ... */
+		break;
+	}
+
+	/* ... */
+}
+```
+
+becomes
+
+```C
+void my_func() {
+	/* ... */
+
+	int first = 0;
+	int second = 1;
+	int third = 3;
+	int fourth = 4;
+
+	/* ... */
+
+	switch (first) {
+	case 0:
+		/* ... */
+		break;
+	}
+
+	/* ... */
+}
+```
+
+### 3.2 — Type replacement
 
 Did you know that writing *this*
 
@@ -209,7 +266,7 @@ As type definitions are replaced, they are removed from the source file.
 
 During this step, it is also possible to check for undefined types.
 
-### 3.2 — Expression validity check and replacement
+### 3.3 — Expression validity check and replacement
 
 Expressions are the next thing to replace. There are 5 places to search in:
 
@@ -382,7 +439,7 @@ struct _node {
 }
 ```
 
-#### 3.2.1 — Mismatching types and type casts
+#### 3.3.1 — Mismatching types and type casts
 
 There may be scenarios where types do not match. This may be caused by 2 factors:
 
