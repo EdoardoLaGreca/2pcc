@@ -377,7 +377,7 @@ struct _node {
 	int isopr; /* is operator? */
 	union {
 		struct _opd operand;
-		struct _opt operator;
+		struct _opr operator;
 	}
 }
 ```
@@ -387,19 +387,9 @@ struct _node {
 There may be scenarios where types do not match. This may be caused by 2 factors:
 
  - usage of variables or constant values with mismatching types (e.g. `53 + 4.2` or `a + b` where `a` is `int` and `b` is `float`)
- - usage of type casts resulting in mismatching types
+ - usage of type casts which result in mismatching types
 
-In case of mismatching types in type casts, the types should converge into a single common type by following a primitive type hierarchy.
-
-In case of 2 mismatching types:
-
- - in case of two integer types (including `char`):
-   - if they differ in size only, the smaller is casted to the larger
-   - if they differ in signedness, they are both casted to the next
- - in case of one integer and one floating point type, *the floating point type is promoted to a signed integer* (`float` is promoted to `int`, `double` is promoted to `long int`)
- - in case of two floating point types, the smallest of the two is promoted to the type of other one
-
-In case of an expression containing more than 2 mismatching types, the types are resolved two by two, following the order of execution.
+In case of mismatching types in type casts, the compiler *throws an error*. This choice was made because creating rules for automatic type casting would require time, effort and code complexity, unless a low code-complexity way is found.
 
 Assignment operations break the rules: the assigned value is *always* casted to the variable's type, except when the two types are incompatible (the variable is smaller than the space needed by the value and/or the variable is unsigned and the value is signed).
 
