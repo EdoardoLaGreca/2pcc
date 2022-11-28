@@ -266,15 +266,34 @@ As type definitions are replaced, they are removed from the source file.
 
 During this step, it is also possible to check for undefined types.
 
-### 3.3 — Expression validity check and replacement
+## 4 — IR code generation
 
-Expressions are the next thing to replace. There are 5 places to search in:
+Once all the replacements have been done, it's time for the real IR code generation.
+
+### 4.2 — Statements translation
+
+#### 4.2.1 — Labels
+
+Labels are replaced with the IR label syntax.
+
+Since labels are local to their function's scope, the function name is appended after their actual name.
+
+The `case` and `default` labels, which only appear in `switch` statements, they get a special name that is
+
+#### 4.2.2 — Blocks
+
+Blocks of code only creates an additional scope, so new variables are allocated at the beginning and deallocated at the end.
+
+#### 4.2.3 — Expressions
+
+There are 6 places to search expressions in:
 
  - *`if` and `switch` conditions*, between "if(" and ")" and "switch(" and ")"
  - *`while` and `do-while` conditions*, between "while(" and ")" and "do{...}while(" and ")"
  - *`for` conditions*, between "for(...;" and ";"
  - a function's body
  - outside of functions, such as in assignments to global variables
+ - in assignments to `enum` values
 
 To check the validity of an expression (and possibly replace it), a syntax tree would be the best option.
 
@@ -315,8 +334,8 @@ produces the following tree.
    567   *
         / \
       89   -
-          / \
-         0   j
+            \
+             j
 ```
 
 Once one expression's tree is completed, it can be converted to IR code.
@@ -439,7 +458,7 @@ struct _node {
 }
 ```
 
-#### 3.3.1 — Mismatching types and type casts
+##### 4.2.3.1 — Mismatching types and type casts
 
 There may be scenarios where types do not match. This may be caused by 2 factors:
 
@@ -449,4 +468,8 @@ There may be scenarios where types do not match. This may be caused by 2 factors
 In case of mismatching types in type casts, the compiler *throws an error*. This choice was made because creating rules for automatic type casting would require time, effort and code complexity, unless a way with low code complexity is found.
 
 Assignment operations break the rules: the assigned value is *always* casted to the variable's type, except when the two types are incompatible (the variable is smaller than the space needed by the value and/or the variable is unsigned and the value is signed).
+
+#### 4.2.4 — if and switch statements
+
+
 
