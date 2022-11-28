@@ -53,7 +53,7 @@ while (/* is src_file[i] a whitespace character? (e.g. a space, a tab, a newline
 /* now, unless an error occurred, preproc_type contains the directive type */
 ```
 
-The value of the instruction is contained between the first space after the "#" character and the next non-escaped newline character "\n". Since you cannot know exactly how long is the value, you have two options: you either use a for loop to read how many characters you need or you process the value as you read it, without allocating anything. For simplicity, I will use the latter.
+The value of the instruction is contained between the first space after the "#" character and the next non-escaped newline character "\n". Since you cannot know exactly how long is the value, you have two options: you either use a for loop to read how many characters you need or you process the value as you read it, without allocating anything. For simplicity, I use the latter.
 
 ```C
 /* this code continues the previous one, which means that src_file[i] contains a whitespace character */
@@ -191,7 +191,7 @@ void myfunc() {
 
 So that's what it does, it *replaces type names with their actual structure*. This is also valid for `enum`s and `union`s.
 
-On the other hand, `typedef`s create type aliases. If one type alias is found, the representer will search for the original type name (or another alias, in case of multiple cascading `typedef`s in which only one refers to the original) before replacing.
+On the other hand, `typedef`s create type aliases. If one type alias is found, the representer searches for the original type name (or another alias, in case of multiple cascading `typedef`s in which only one refers to the original) before replacing.
 
 ```C
 /* an example of multiple cascading typedefs in which only one refers to the original type */
