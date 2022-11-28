@@ -21,12 +21,12 @@ You can find some documentation in the `doc` directory.
 
  - ☒ Line reconstruction
  - ☒ Preprocessor
- - ☒ Replacements
+ - ☒ Checks and replacements
    + ☒ Type replacement
    + ☒ Automatic type casting (optional)
-   + ☒ IR code generation
-   + ☒ Expression validity check and replacement
+   + ☒ Expression validity check
  - ☒ Optimization (optional)
+ - ☒ IR code generation
  - ☒ UTF-8 support
 
 ### Realizer
