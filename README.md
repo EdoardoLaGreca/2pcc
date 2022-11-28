@@ -2,7 +2,7 @@
 
 You can either pronounce it as *two-pee-see-see* or *two pieces*.
 
-**Notice: this compiler IS NOT compliant with the ANSI C standard.** Some things that break compliancy are intended to do so, all the others do so by mistake. Of course I don't know all the ANSI C standard draft by memory.
+**Notice: this compiler IS NOT compliant with the ANSI C standard.** Some things break compliancy by choice, all the others do so by mistake. Of course I don't know all the [ANSI C standard draft](https://port70.net/~nsz/c/c89/c89-draft.html) by memory.
 
 ## Introduction
 
