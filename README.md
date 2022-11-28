@@ -2,6 +2,8 @@
 
 You can either pronounce it as *two-pee-see-see* or *two pieces*.
 
+**Notice: this compiler IS NOT compliant with the ANSI C standard.** Some things that break compliancy are intended to do so, all the others do so by mistake. Of course I don't know all the ANSI C standard draft by memory.
+
 ## Introduction
 
 Typically, making an executable file out of source code involves a compiler, which translates the source code into object code, and a linker, which links the object code with prospective libraries. 2pcc takes a different approach: it divides the job into platform-*dependent* and platform-*independent*, so that every part does roughly the same amount of work. This allows each part to focus on one job only and therefore achieve simplicity. Platform-independent work is done by a *representer* while platform-dependent work is done by a *realizer*.
