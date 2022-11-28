@@ -23,6 +23,7 @@ You can find some documentation in the `doc` directory.
  - ☒ Preprocessor
  - ☒ Replacements
    + ☒ Type replacement
+   + ☒ Automatic type casting (optional)
    + ☒ IR code generation
    + ☒ Expression validity check and replacement
  - ☒ Optimization (optional)
