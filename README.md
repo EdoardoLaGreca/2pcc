@@ -51,4 +51,4 @@ Each realizer has its own roadmap since its development is platform-dependent.
 
 2pcc is licensed under the [Creative Commons Zero](https://en.wikipedia.org/wiki/Creative_Commons_license#Zero_/_public_domain) (CC0) license.
 
-Attribution is not required in the Creative Commons Zero license. However, I'm happy if you give me credit for my work :)
+Attribution is not required by the Creative Commons Zero license. However, I'm happy if you give me credit for my work :)
