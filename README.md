@@ -32,6 +32,9 @@ You can find some documentation in the `doc` directory.
  - ☒ Optimization (optional)
  - ☒ IR code generation
  - ☒ UTF-8 support
+ - ☒ Language extensions
+   + ☒ Embeddable structures (Go-like composition)
+ - ☒ Command line utilities
 
 ### Realizer
 
